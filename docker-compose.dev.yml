@@ -1,0 +1,12 @@
+services:
+  api:
+    env_file: .env
+    secrets: []
+
+  worker:
+    env_file: .env
+    secrets: []
+
+  beat:
+    env_file: .env
+    secrets: []

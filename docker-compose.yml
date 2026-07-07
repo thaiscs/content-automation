@@ -1,0 +1,91 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    secrets:
+      - anthropic_api_key
+      - canva_client_id
+      - canva_client_secret
+      - canva_template_id
+      - teachable_api_key
+      - sendgrid_api_key
+      - reviewer_email
+    environment:
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      WORKBOOK_SCHEDULE_CRON: ${WORKBOOK_SCHEDULE_CRON:-0 9 * * 1}
+      MAX_REGENERATION_ITERATIONS: ${MAX_REGENERATION_ITERATIONS:-5}
+      # Not a secret — intentionally visible so the allowlist is auditable in compose files
+      TEACHABLE_ALLOWED_COURSE_IDS: ${TEACHABLE_ALLOWED_COURSE_IDS}
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/content_workflow
+      REDIS_URL: redis://redis:6379/0
+
+  worker:
+    build: .
+    command: celery -A app.celery_app worker --loglevel=info
+    depends_on:
+      - db
+      - redis
+    secrets:
+      - anthropic_api_key
+      - canva_client_id
+      - canva_client_secret
+      - canva_template_id
+      - teachable_api_key
+      - sendgrid_api_key
+      - reviewer_email
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/content_workflow
+      REDIS_URL: redis://redis:6379/0
+      BASE_URL: ${BASE_URL:-http://localhost:8000}
+      MAX_REGENERATION_ITERATIONS: ${MAX_REGENERATION_ITERATIONS:-5}
+      TEACHABLE_ALLOWED_COURSE_IDS: ${TEACHABLE_ALLOWED_COURSE_IDS}
+
+  beat:
+    build: .
+    command: celery -A app.celery_app beat --loglevel=info
+    depends_on:
+      - db
+      - redis
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/content_workflow
+      REDIS_URL: redis://redis:6379/0
+      WORKBOOK_SCHEDULE_CRON: ${WORKBOOK_SCHEDULE_CRON:-0 9 * * 1}
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: content_workflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:
+
+secrets:
+  anthropic_api_key:
+    file: ./secrets/anthropic_api_key
+  canva_client_id:
+    file: ./secrets/canva_client_id
+  canva_client_secret:
+    file: ./secrets/canva_client_secret
+  canva_template_id:
+    file: ./secrets/canva_template_id
+  teachable_api_key:
+    file: ./secrets/teachable_api_key
+  sendgrid_api_key:
+    file: ./secrets/sendgrid_api_key
+  reviewer_email:
+    file: ./secrets/reviewer_email
