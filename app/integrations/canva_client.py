@@ -1,21 +1,66 @@
 """
 Canva Connect API client.
 
-Handles OAuth 2.0 client-credentials auth, Design Autofill (populate a branded
-template with structured content), and PDF export. The design_id is the only
-persistent reference stored — PDFs are always re-exported on demand.
+Auth uses the OAuth 2.0 authorization-code flow (Canva Connect does not support
+client-credentials for Autofill). A refresh token is obtained once via
+scripts/canva_auth.py; this module exchanges it for short-lived access tokens and
+persists the rotated refresh token Canva returns on each use.
+
+Design Autofill populates a branded template with structured content; PDFs are
+exported on demand. The design_id is the only persistent reference stored.
 
 Docs: https://www.canva.com/developers/docs/connect/
 """
 
+import base64
+import os
 import time
+from pathlib import Path
 
 import httpx
 
 from app.config import settings
 
 _CANVA_API_BASE = "https://api.canva.com/rest/v1"
+_TOKEN_URL = "https://api.canva.com/rest/v1/oauth/token"
 _token_cache: dict = {}
+
+
+def _refresh_token_file() -> Path:
+    """
+    Where the refresh token lives. A read-only Docker secret takes precedence for
+    reads; writes (rotation) always go to the configured writable path.
+    """
+    prod = Path("/run/secrets/canva_refresh_token")
+    if prod.exists():
+        return prod
+    return Path(settings.canva_refresh_token_path)
+
+
+def _read_refresh_token() -> str:
+    path = _refresh_token_file()
+    if not path.exists() or not path.read_text().strip():
+        raise RuntimeError(
+            "No Canva refresh token found. Run `python scripts/canva_auth.py` once "
+            "to authorize the integration and store the refresh token."
+        )
+    return path.read_text().strip()
+
+
+def _write_refresh_token(token: str) -> None:
+    # Always write to the configured (writable) path, never to /run/secrets.
+    path = Path(settings.canva_refresh_token_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(token)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
+def _basic_auth_header() -> str:
+    raw = f"{settings.canva_client_id}:{settings.canva_client_secret}".encode()
+    return "Basic " + base64.b64encode(raw).decode()
 
 
 def _get_access_token() -> str:
@@ -24,18 +69,27 @@ def _get_access_token() -> str:
         return _token_cache["token"]
 
     resp = httpx.post(
-        "https://api.canva.com/rest/v1/oauth/token",
+        _TOKEN_URL,
+        headers={
+            "Authorization": _basic_auth_header(),
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
         data={
-            "grant_type": "client_credentials",
-            "client_id": settings.canva_client_id,
-            "client_secret": settings.canva_client_secret,
-            "scope": "design:content:write design:content:read",
+            "grant_type": "refresh_token",
+            "refresh_token": _read_refresh_token(),
         },
     )
     resp.raise_for_status()
     data = resp.json()
+
     _token_cache["token"] = data["access_token"]
-    _token_cache["expires_at"] = now + data.get("expires_in", 3600)
+    _token_cache["expires_at"] = now + data.get("expires_in", 14400)
+
+    # Canva rotates the refresh token on each use — persist the new one or the
+    # next run will fail with an invalid_grant error.
+    if data.get("refresh_token"):
+        _write_refresh_token(data["refresh_token"])
+
     return _token_cache["token"]
 
 

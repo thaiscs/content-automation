@@ -22,6 +22,16 @@ class Settings(BaseSettings):
     # Folder of curated background photos; a new one is picked per edition.
     # Leave empty to keep the template's default backgrounds.
     canva_background_folder_id: str = ""
+    # OAuth (authorization-code flow). The refresh token is obtained once via
+    # scripts/canva_auth.py and then auto-renews. It is stored in a file (not a
+    # plain env var) because Canva rotates it on every use and the app rewrites it.
+    # Must match the redirect URI registered in the Canva Developer Portal exactly.
+    canva_redirect_uri: str = "http://127.0.0.1:8000/oauth/callback"
+    canva_scopes: str = (
+        "design:content:read design:content:write design:meta:read "
+        "brandtemplate:content:read brandtemplate:meta:read"
+    )
+    canva_refresh_token_path: str = "secrets/canva_refresh_token"
 
     # Teachable
     teachable_api_key: str = ""

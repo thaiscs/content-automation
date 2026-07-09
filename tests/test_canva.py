@@ -5,11 +5,16 @@ import pytest
 from app.integrations import canva_client
 
 
-def _mock_token_response():
-    resp = MagicMock()
-    resp.json.return_value = {"access_token": "test_token", "expires_in": 3600}
-    resp.raise_for_status = MagicMock()
-    return resp
+@pytest.fixture(autouse=True)
+def _seed_access_token():
+    """
+    Pre-seed the access-token cache so _get_access_token() short-circuits and
+    never touches the OAuth token endpoint or the refresh-token file during tests.
+    """
+    canva_client._token_cache["token"] = "test_token"
+    canva_client._token_cache["expires_at"] = 9999999999
+    yield
+    canva_client._token_cache.clear()
 
 
 def test_create_design_returns_design_id():
@@ -24,11 +29,10 @@ def test_create_design_returns_design_id():
     poll_resp.raise_for_status = MagicMock()
 
     with (
-        patch("app.integrations.canva_client.httpx.post", side_effect=[_mock_token_response(), autofill_resp]),
+        patch("app.integrations.canva_client.httpx.post", return_value=autofill_resp),
         patch("app.integrations.canva_client.httpx.get", return_value=poll_resp),
         patch("app.integrations.canva_client.time.sleep"),
     ):
-        canva_client._token_cache.clear()
         design_id = canva_client.create_design_from_template({"title": "Test", "subtitle": "Sub"})
 
     assert design_id == "design_abc"
@@ -48,8 +52,6 @@ def test_create_design_includes_title_in_payload():
     captured = {}
 
     def fake_post(url, **kwargs):
-        if url.endswith("/oauth/token"):
-            return _mock_token_response()
         captured["payload"] = kwargs.get("json")
         return autofill_resp
 
@@ -58,7 +60,6 @@ def test_create_design_includes_title_in_payload():
         patch("app.integrations.canva_client.httpx.get", return_value=poll_resp),
         patch("app.integrations.canva_client.time.sleep"),
     ):
-        canva_client._token_cache.clear()
         canva_client.create_design_from_template({"title": "T"}, title="WB HDH Luglio 2026")
 
     assert captured["payload"]["title"] == "WB HDH Luglio 2026"
@@ -78,8 +79,6 @@ def test_create_design_omits_title_when_not_given():
     captured = {}
 
     def fake_post(url, **kwargs):
-        if url.endswith("/oauth/token"):
-            return _mock_token_response()
         captured["payload"] = kwargs.get("json")
         return autofill_resp
 
@@ -88,7 +87,6 @@ def test_create_design_omits_title_when_not_given():
         patch("app.integrations.canva_client.httpx.get", return_value=poll_resp),
         patch("app.integrations.canva_client.time.sleep"),
     ):
-        canva_client._token_cache.clear()
         canva_client.create_design_from_template({"title": "T"})
 
     assert "title" not in captured["payload"]
@@ -108,8 +106,6 @@ def test_create_design_includes_image_fields_in_payload():
     captured = {}
 
     def fake_post(url, **kwargs):
-        if url.endswith("/oauth/token"):
-            return _mock_token_response()
         captured["payload"] = kwargs.get("json")
         return autofill_resp
 
@@ -118,7 +114,6 @@ def test_create_design_includes_image_fields_in_payload():
         patch("app.integrations.canva_client.httpx.get", return_value=poll_resp),
         patch("app.integrations.canva_client.time.sleep"),
     ):
-        canva_client._token_cache.clear()
         canva_client.create_design_from_template(
             {"cover_title": "T"}, image_fields={"sfondo_cover": "MAxyz123"}
         )
