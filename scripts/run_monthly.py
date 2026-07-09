@@ -26,44 +26,12 @@ import httpx
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app.config import settings  # noqa: E402
-from app.integrations import canva_client, sendgrid_client  # noqa: E402
-from app.pipelines.workbook import backgrounds, content_plan  # noqa: E402
+from app.integrations import canva_client  # noqa: E402
+from app.pipelines.workbook import backgrounds, content_plan, notify  # noqa: E402
 from app.pipelines.workbook.generate import (  # noqa: E402
     generate_workbook_content,
     workbook_to_canva_fields,
 )
-
-_READY_EMAIL = """
-<html><body style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px">
-  <h2>Il workbook di {label} è pronto ✨</h2>
-  <p>Ho generato la bozza di questo mese in Canva. Aprila per rivederla,
-     modificarla e finalizzarla.</p>
-  <p style="margin:24px 0">
-    <a href="{edit_url}"
-       style="background:#6366f1;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none">
-      ✏️ Apri e modifica in Canva
-    </a>
-  </p>
-  <p style="color:#6b7280;font-size:13px">Tema del mese: {tema}</p>
-</body></html>
-"""
-
-_NO_PLAN_EMAIL = """
-<html><body style="font-family:sans-serif;max-width:600px;margin:auto;padding:24px">
-  <h2>Nessun tema pianificato per {label}</h2>
-  <p>Non ho trovato una voce per <strong>{key}</strong> in content_plan.toml,
-     quindi non ho generato nessun workbook questo mese.</p>
-  <p>Aggiungi il tema e gli obiettivi per {label} nel file di pianificazione,
-     poi potrò rigenerarlo.</p>
-</body></html>
-"""
-
-
-def _notify(subject: str, html: str) -> None:
-    if settings.sendgrid_api_key and settings.reviewer_email:
-        sendgrid_client.send_email(to=settings.reviewer_email, subject=subject, html_body=html)
-    else:
-        print(f"[email skipped — SENDGRID_API_KEY/REVIEWER_EMAIL not set]\n  subject: {subject}")
 
 
 def main() -> None:
@@ -84,10 +52,7 @@ def main() -> None:
         label = content_plan.edition_label(target)
         key = f"{target.year:04d}-{target.month:02d}"
         print(f"No content-plan entry for {key}. Sending heads-up and stopping.")
-        _notify(
-            subject=f"[HDH] Nessun tema per {label}",
-            html=_NO_PLAN_EMAIL.format(label=label, key=key),
-        )
+        notify.send_no_plan(edition_label=label, key=key)
         return
 
     print(f"Generating workbook for «{edition.label}» — theme: {edition.tema}")
@@ -116,10 +81,7 @@ def main() -> None:
     edit_url = f"https://www.canva.com/design/{design_id}/edit"
     print(f"✓ Design ready: {edit_url}")
 
-    _notify(
-        subject=f"[HDH] Workbook {edition.label} pronto",
-        html=_READY_EMAIL.format(label=edition.label, edit_url=edit_url, tema=edition.tema),
-    )
+    notify.send_ready(edition_label=edition.label, edit_url=edit_url, tema=edition.tema)
     print("✓ Notification sent (or skipped if email not configured).")
 
 

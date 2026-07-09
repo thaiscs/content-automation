@@ -11,3 +11,5 @@ dist/
 *.egg-info/
 .venv/
 uv.lock
+out/
+logs/
