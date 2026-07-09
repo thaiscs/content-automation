@@ -1,0 +1,19 @@
+# Monthly content plan for the HDH workbook automation.
+#
+# Giusi fills this in a few editions ahead. The monthly cron looks up the entry
+# for the current month (key format: "YYYY-MM") and generates that workbook.
+# If there's no entry for the current month, the job emails a heads-up and stops
+# (it never invents a theme on its own).
+#
+# Each entry needs:
+#   tema       — the core theme of the month
+#   obiettivi  — what participants should experience / take away
+# The edition label shown on the cover is derived automatically (e.g. "Luglio 2026").
+
+["2026-07"]
+tema = "la femminilità e la sensualità come forza vitale"
+obiettivi = "riconnettersi al proprio corpo e alla propria energia femminile, oltre gli standard esterni"
+
+["2026-08"]
+tema = "il riposo come atto di potere"
+obiettivi = "imparare a rallentare senza sensi di colpa e riconoscere il valore della cura di sé"

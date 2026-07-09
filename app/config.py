@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     # Email
     sendgrid_api_key: str = ""
     reviewer_email: str = ""
+    # Sender address — must be a verified sender/domain in SendGrid.
+    email_from: str = "noreply@giusivalentini.com"
 
     # App
     base_url: str = "http://localhost:8000"

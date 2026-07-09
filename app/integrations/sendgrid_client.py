@@ -15,7 +15,7 @@ def _get_client() -> sendgrid.SendGridAPIClient:
 
 def send_email(to: str, subject: str, html_body: str) -> None:
     message = Mail(
-        from_email="noreply@giusi-valentini.com",
+        from_email=settings.email_from,
         to_emails=to,
         subject=subject,
         html_content=html_body,
