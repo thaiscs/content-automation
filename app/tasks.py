@@ -5,7 +5,7 @@ Task chain for a new workbook run:
   run_workbook_pipeline → (async) design + review email
 
 Approval path:
-  approve_workbook → publish_to_teachable
+  approve_workbook → mark approved (the workbook is finished by hand in Canva)
 
 Rejection path:
   reject_workbook → run_workbook_pipeline (with feedback, incremented iteration)
@@ -17,7 +17,7 @@ from app.celery_app import celery
 from app.config import settings
 from app.database import SessionLocal
 from app.models import JobStatus, WorkbookJob
-from app.pipelines.workbook import design, generate, publish, review
+from app.pipelines.workbook import design, generate, review
 
 logger = logging.getLogger(__name__)
 
@@ -79,24 +79,9 @@ def approve_workbook(job_id: str) -> None:
         job = db.get(WorkbookJob, job_id)
         if not job:
             return
-        publish.upload_draft_to_teachable(job, db)
-    except PermissionError:
-        logger.error("Allowlist guard blocked Teachable upload for job %s", job_id)
-        db.rollback()
-        job = db.get(WorkbookJob, job_id)
-        if job:
-            job.status = JobStatus.failed
-            job.error_message = "Course ID not in TEACHABLE_ALLOWED_COURSE_IDS."
-            db.commit()
-        raise
-    except Exception:
-        logger.exception("Draft upload failed for job %s", job_id)
-        db.rollback()
-        job = db.get(WorkbookJob, job_id)
-        if job:
-            job.status = JobStatus.failed
-            db.commit()
-        raise
+        # No downstream publish — the approved workbook is finished by hand in Canva.
+        job.status = JobStatus.approved
+        db.commit()
     finally:
         db.close()
 

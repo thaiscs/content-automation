@@ -33,12 +33,6 @@ class Settings(BaseSettings):
     )
     canva_refresh_token_path: str = "secrets/canva_refresh_token"
 
-    # Teachable
-    teachable_api_key: str = ""
-    # Comma-separated list of course IDs the pipeline is allowed to touch.
-    # Start with a test course ID only; add the real course after POC validation.
-    teachable_allowed_course_ids: str = ""
-
     # Email
     sendgrid_api_key: str = ""
     reviewer_email: str = ""
@@ -61,7 +55,6 @@ class Settings(BaseSettings):
             "canva_client_id",
             "canva_client_secret",
             "canva_template_id",
-            "teachable_api_key",
             "sendgrid_api_key",
             "reviewer_email",
         ]

@@ -1,7 +1,7 @@
 """
 Full local end-to-end run: Claude generation → Canva autofill → finished design.
 
-No DB / Redis / Celery / email / Teachable — just the content core. Proves that
+No DB / Redis / Celery / email — just the content core. Proves that
 Claude produces a valid workbook and Canva renders it, before any hosting work.
 
 Prerequisites:

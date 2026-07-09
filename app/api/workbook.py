@@ -11,7 +11,6 @@ router = APIRouter(prefix="/workbooks", tags=["workbooks"])
 
 
 class GenerateRequest(BaseModel):
-    course_id: str
     mese: str                  # e.g. "Giugno 2026"
     tema_principale: str       # e.g. "femminilità e sensualità come forza vitale"
     obiettivi: str             # learning objectives for this edition
@@ -28,7 +27,6 @@ def generate_workbook(body: GenerateRequest, db: Session = Depends(get_db)) -> J
 
     job = WorkbookJob(
         id=str(uuid.uuid4()),
-        course_id=body.course_id,
         module_title=body.mese,
         learning_objectives=f"{body.tema_principale} | {body.obiettivi}",
         status=JobStatus.pending,

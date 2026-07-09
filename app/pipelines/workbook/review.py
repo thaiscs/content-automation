@@ -3,13 +3,10 @@ Human review step for the workbook pipeline.
 
 Sends a review email with three options:
   - "Modifica in Canva" → editable Canva link; reviewer edits text/layout in place.
-    Edits save against the same design_id, so the approval re-export captures them.
-  - "Approva e carica"  → re-exports the CURRENT design state (including any manual
-    Canva edits) and uploads the draft to Teachable.
+  - "Approva"           → marks the workbook approved; it's finished by hand in Canva.
   - "Chiedi a Claude"   → fallback: regenerate the whole workbook with free-text feedback.
 
-Because the approval path always re-exports fresh from Canva, manual edits made in
-the Canva editor before approving are picked up automatically — no regeneration needed.
+The workbook lives in Canva; there is no downstream publish step.
 """
 
 from datetime import datetime, timedelta, timezone
@@ -36,7 +33,7 @@ _REVIEW_EMAIL_TEMPLATE = """
   </p>
   <p style="color:#6b7280;font-size:13px;margin-top:4px">
     Apri il design, modifica testo e layout liberamente. Le modifiche si salvano in Canva.
-    Quando hai finito, torna a questa email e clicca "Approva e carica".
+    Quando hai finito, torna a questa email e clicca "Approva".
   </p>
 
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0">
@@ -44,7 +41,7 @@ _REVIEW_EMAIL_TEMPLATE = """
   <p>
     <a href="{approve_url}"
        style="background:#16a34a;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;margin-right:12px">
-      ✓ Approva e carica
+      ✓ Approva
     </a>
     <a href="{reject_url}"
        style="background:#dc2626;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none">
@@ -52,8 +49,7 @@ _REVIEW_EMAIL_TEMPLATE = """
     </a>
   </p>
   <p style="color:#6b7280;font-size:13px;margin-top:8px">
-    <strong>Approva e carica</strong>: esporta il design attuale (incluse le tue modifiche)
-    e lo carica come bozza su Teachable.<br>
+    <strong>Approva</strong>: segna il workbook come approvato (lo finalizzi in Canva).<br>
     <strong>Chiedi a Claude</strong>: rigenera l'intero workbook in base al tuo feedback.
   </p>
 

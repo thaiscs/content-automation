@@ -5,7 +5,7 @@ Fills the brand template (all 34 fields) with static sample content, runs one
 Design Autofill job, and prints the resulting design's edit + view URLs so you
 can open it in Canva and confirm every field populated.
 
-No PDF export, no download, no Teachable.
+No PDF export, no download.
 
 Prerequisite: run `python scripts/canva_auth.py` first to authorize.
 

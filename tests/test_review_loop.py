@@ -27,7 +27,6 @@ def db():
 def job(db):
     j = WorkbookJob(
         id="job-1",
-        course_id="course-1",
         module_title="Module 1",
         learning_objectives="Learn X",
         status=JobStatus.awaiting_review,

@@ -23,20 +23,16 @@ def _validate_token(token_id: str, db: Session) -> ReviewToken:
 
 @router.get("/{token_id}/approve", response_class=HTMLResponse)
 def approve_workbook(token_id: str, db: Session = Depends(get_db)) -> HTMLResponse:
-    from app.tasks import approve_workbook as approve_task
-
     token = _validate_token(token_id, db)
     token.used = True
     token.job.status = JobStatus.approved
     db.commit()
 
-    approve_task.delay(token.job_id)
-
     return HTMLResponse(
         content="""
         <html><body style="font-family:sans-serif;max-width:600px;margin:auto;padding:48px;text-align:center">
-          <h2 style="color:#16a34a">&#10003; Approved!</h2>
-          <p>The workbook is being published to Teachable. You will receive a confirmation shortly.</p>
+          <h2 style="color:#16a34a">&#10003; Approvato!</h2>
+          <p>Il workbook è approvato. Puoi finalizzarlo in Canva.</p>
         </body></html>
         """
     )
