@@ -110,6 +110,20 @@ locator id shown in brackets in the `read-design` output, e.g.
   element is rendering in the wrong typeface, that has to be fixed by hand in
   Canva's editor, not through MCP. Size/weight/style are fine to fix
   programmatically (as in the autoshrink and stray-bold cases above).
+- **`toc_1`'s font family mismatches `toc_2`–`toc_4` on the TOC page** (a
+  pre-existing template inconsistency, not something the fill introduces):
+  `toc_1`'s content element renders in a different, larger-looking typeface
+  (`YAFcf7N4Obg` vs `YACkoA9eHeY` for the other three) and can't be matched via
+  the API (see the font-family caveat above). The workaround: set `toc_1`'s
+  `font_size` to ~15 (vs the other three's 20) via `format_text` — visually
+  closes most of the gap, though the typeface itself stays different. Check
+  the page 4 thumbnail after; adjust the size if it still stands out.
+- **The `sezN_testo_*` boxes auto-grow — use this, don't fight it.** If a
+  section's body text looks short on the page after filling (compare against
+  the box filling most of the page height in the thumbnail, roughly matching
+  the section title + citation + full column of text reaching close to the
+  bottom margin), the fix is to write more content, not to resize the box.
+  See `field_assembly.md`'s corrected character budget for these fields.
 - **Resized/repositioned boxes only help if they still span the intended text
   area.** This doesn't come up in routine fills (`replace_text` doesn't move or
   resize boxes), but if you ever restructure the template — add a section,
