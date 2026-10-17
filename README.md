@@ -23,6 +23,13 @@ Either path reports back a Canva edit URL
 (`https://www.canva.com/design/<design_id>/edit`) for Giusi to review and
 finalize by hand in Canva. No email is sent automatically.
 
+- **After approval:** once Giusi has finalized a design in Canva, run the
+  `/finalize-workbook` skill (giving it that Canva URL) to turn it into a
+  fillable PDF — real form fields over the answer lines, typeable on
+  desktop or mobile. This is a separate, explicitly-triggered step; it
+  never runs automatically off the back of generation. See
+  [`.claude/skills/finalize-workbook/SKILL.md`](.claude/skills/finalize-workbook/SKILL.md).
+
 ## How it works
 
 1. **Theme.** [`content_plan.toml`](content_plan.toml) holds each edition's
@@ -57,6 +64,16 @@ Routine_Prompt.md           Instructions payload for the scheduled cloud routine
   references/
     field_assembly.md       Character budgets + how drafted JSON becomes Canva field text
     canva_mcp_fill.md       Canva MCP fill procedure, template layout, known gotchas
+.claude/skills/finalize-workbook/
+  SKILL.md                  Post-approval workflow: export Canva PDF → add fillable fields
+  references/
+    coordinate_extraction.md  How to find each answer line's PDF coordinates
+  scripts/
+    add_form_fields.py      Authors real AcroForm text-field widgets onto a flat PDF
+    detect_dotlines.py      Finds each answer's dot-run position(s) in the exported PDF
+    check_fields.py         Validates a fields.json before authoring (overlaps, dupes)
+    get_page_sizes.py       Prints PDF page sizes in points, for coordinate conversion
+    render_with_fields.py   Renders pages with field rects outlined, for visual QA
 ```
 
 ## History note

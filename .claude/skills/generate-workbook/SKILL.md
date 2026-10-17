@@ -87,11 +87,35 @@ there is no Python/API step left in this workflow (see step 5).
 5. **Fill Canva via MCP.** There's no Python/API step — fill the brand template
    directly using the connected Canva MCP tools. Follow
    `references/canva_mcp_fill.md` for the exact procedure (locating the template,
-   mapping fields to elements, the known gotchas, and the stable edit-URL format).
-   In short: create a design from brand template `EAHNaGY-7DM`, map the 34
-   assembled field values to their `dataFieldLabel`-tagged text elements page by
-   page, replace their text, verify via thumbnails, rename the design to
-   `WB HDH <Label>`, and commit.
+   mapping fields to elements, selecting and placing background photos, the
+   known gotchas, and the stable edit-URL format). In short: create a design
+   from brand template `EAHNaGY-7DM`, map the 34 assembled field values to
+   their `dataFieldLabel`-tagged text elements page by page, replace their
+   text, pick a themed photo from the curated library (`references/media_library.md`)
+   for the `sfondo_cover` and `sfondo_impressum` background-image fields (the
+   third such field, `sfondo_pagina2`, is left unfilled), verify via
+   thumbnails, rename the design to `WB HDH <Label>`, and commit.
+   Three things to get right on every body-text page (don't treat any of
+   these as optional polish — they're part of the fill, not a follow-up
+   pass): normalize every `testo` box to plain, non-italic weight/style
+   before applying any deliberate bold spans; run the per-page
+   verify-and-fix loop (thumbnail → judge fill → redraft/refill if
+   over/underfilled) before moving to the next page; and on page 4 (TOC),
+   explicitly capture and reapply each title's original font size/alignment
+   so all four match the brand template instead of drifting. All three are
+   spelled out in `references/canva_mcp_fill.md` and
+   `references/field_assembly.md`.
+   Two standing tooling limitations to note in the report every run, not
+   chase as new bugs: bold spans within a text box aren't achievable
+   (confirmed — see `field_assembly.md`), and font family can silently
+   differ between the two columns of a body-text pair because
+   `create-design-from-brand-template` duplicates the previous edition's
+   drifted formatting, not a clean template — check each page's two
+   columns visually match in typeface, and name any field that doesn't in
+   the report (see `canva_mcp_fill.md`'s font-family gotcha). The durable
+   fix for the font drift is a human resetting the brand template's
+   body-text boxes to one font family in Canva directly — worth flagging
+   to Giusi as a standalone action item, not something a fill can correct.
 
 6. **Report** the Canva edit URL (`https://www.canva.com/design/<design_id>/edit`),
    so Giusi can finalize it. Don't send an approval email unless explicitly asked —
@@ -131,6 +155,23 @@ Return/write JSON with this shape:
 Rules — getting them wrong makes the boxes overflow or leaves fields unmapped:
 - EXACTLY 4 sezioni; each with EXACTLY 2 `corpo` columns and EXACTLY 4 `esercizi`.
 - EXACTLY 2 paragraphs in `lettera_corpo` and in `integrazione_corpo`.
+- Every `corpo` column, and every `lettera_corpo`/`integrazione_corpo`
+  string, is itself written as 3 short paragraphs (blank-line-separated,
+  falling back to 2 or 1 for the short `integrazione` field when a 3-way
+  split would leave a paragraph too thin — see `field_assembly.md`) — this
+  is what makes each page read as a filled, breathable page instead of one
+  dense block. Don't skip this or leave it for the Canva-filling step
+  to patch on; draft it in from the start. On top of that, still mark
+  **exactly 2 or 3 paragraphs per page** (not every paragraph) with a
+  `**bolded phrase**` of just 3-5 words flagging that paragraph's core idea
+  — but be aware this markup currently ships as plain text: the connected
+  Canva tooling can't render partial bold within a text box (confirmed,
+  not a maybe), so the markers get stripped rather than turned into actual
+  bold formatting. Draft them anyway (cheap, self-documenting, forward
+  compatible), just don't expect them to render. Exact rules, word counts,
+  which paragraphs count as "the same page", and the current bold
+  limitation: see `references/field_assembly.md`, "Paragraph rhythm & bold
+  emphasis".
 - EXACTLY 2 `esercizio_finale_completamenti`; EXACTLY 3 `completamenti`.
 - Each esercizio has one `titolo` and one reflective `prompt` (second person). Do
   NOT add answer lines — the template adds them.
@@ -153,3 +194,9 @@ Rules — getting them wrong makes the boxes overflow or leaves fields unmapped:
   data field anywhere — `cover_title` in the JSON schema currently has nowhere to
   go in Canva. Mention this in your final report rather than silently dropping
   it; if it matters, ask Giusi to tag a cover-title text element in Canva.
+- Background photos: the template's `sfondo_cover` and `sfondo_impressum`
+  image fields are filled from a curated Canva folder of Giusi's photos, not
+  generated or drafted — see `references/media_library.md` for where they
+  live and how to pick one, and `references/canva_mcp_fill.md` step 6 for the
+  placement mechanics. The third image field, `sfondo_pagina2`, is left
+  unfilled on purpose.
