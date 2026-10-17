@@ -10,16 +10,25 @@ Canva fields.
 
 ## Character budgets (min, max) — inclusive
 
-Calibrated from the template's box geometry at font size 12. These are
-deliberately approximate ranges, not hard limits — stay inside them so pages
-neither overflow nor look sparse.
+Calibrated from the template's box geometry. These are deliberately
+approximate ranges, not hard limits — stay inside them so pages neither
+overflow nor look sparse.
+
+**Correction (2026-08):** the `sezN_testo_*` range below was originally ported
+from `generate.py` as 480–720 chars, but that under-filled the actual template
+box by roughly 30% (confirmed visually — see the August 2026 edition before/
+after). These boxes auto-grow to fit their content, so there's no hard
+overflow ceiling; the real failure mode is text that's too *short*, not too
+long. Corrected range below is empirically validated (filled ~full page
+height without visibly overflowing onto the next element) — treat 480–720 as
+wrong if you see it referenced elsewhere (e.g. old commit messages).
 
 | Field | Budget (chars) | ~Words |
 |---|---|---|
-| `sez1_testo_1`, `sez1_testo_2` | 480–720 | ~90–120 |
-| `sez2_testo_1`, `sez2_testo_2` | 480–720 | ~90–120 |
-| `sez3_testo_1`, `sez3_testo_2` | 480–720 | ~90–120 |
-| `sez4_testo_1`, `sez4_testo_2` | 480–720 | ~90–120 |
+| `sez1_testo_1`, `sez1_testo_2` | 750–870 | ~125–155 |
+| `sez2_testo_1`, `sez2_testo_2` | 750–870 | ~125–155 |
+| `sez3_testo_1`, `sez3_testo_2` | 750–870 | ~125–155 |
+| `sez4_testo_1`, `sez4_testo_2` | 750–870 | ~125–155 |
 | `lettera_testo_1` | 470–700 | ~85–110 |
 | `lettera_testo_2` | 440–670 | ~85–110 |
 | `integrazione_testo_1` | 250–440 | ~45–65 |

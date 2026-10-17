@@ -258,6 +258,20 @@ flow. Worth her fixing the label directly in Canva at some point.
   element is rendering in the wrong typeface, that has to be fixed by hand in
   Canva's editor, not through MCP. Size/weight/style are fine to fix
   programmatically (as in the autoshrink and stray-bold cases above).
+- **`toc_1`'s font family mismatches `toc_2`–`toc_4` on the TOC page** (a
+  pre-existing template inconsistency, not something the fill introduces):
+  `toc_1`'s content element renders in a different, larger-looking typeface
+  (`YAFcf7N4Obg` vs `YACkoA9eHeY` for the other three) and can't be matched via
+  the API (see the font-family caveat above). The workaround: set `toc_1`'s
+  `font_size` to ~15 (vs the other three's 20) via `format_text` — visually
+  closes most of the gap, though the typeface itself stays different. Check
+  the page 4 thumbnail after; adjust the size if it still stands out.
+- **The `sezN_testo_*` boxes auto-grow — use this, don't fight it.** If a
+  section's body text looks short on the page after filling (compare against
+  the box filling most of the page height in the thumbnail, roughly matching
+  the section title + citation + full column of text reaching close to the
+  bottom margin), the fix is to write more content, not to resize the box.
+  See `field_assembly.md`'s corrected character budget for these fields.
 - **Font family can drift silently between the two columns of a body-text
   pair, and normalize doesn't fix it** — confirmed in the October 2026
   fill. `create-design-from-brand-template` doesn't return a pristine copy
